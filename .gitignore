@@ -1,3 +1,6 @@
 
 /build
 /korefile.js
+.idea/*
+.directory
+LiveGame.iml
