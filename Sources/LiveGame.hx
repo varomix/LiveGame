@@ -4,38 +4,42 @@ import kha.System;
 import kha.Scaler;
 import kha.Image;
 import kha.Color;
-import kha.Font;
 import kha.Assets;
 import kha.Framebuffer;
+import kha.Scheduler;
 
 class LiveGame {
 
+	private static inline var FRAME_SIZE:Float = 64;
+	private static inline var FRAME_COUNT:Float = 3;
+	private static inline var FRAME_TIME:UInt = 80;
+
 	private var initialized:Bool = false;
-	private var font:Font;
-	private var xPos:Float = 0.0;
-	private var grumpyCat:Image;
+	private var xPos:Float = 0;
+	private var yPos:Float = 0;
+	
+	private var wizard:Image;
 
 	private var backbuffer:Image;
+	
+	private var currentTime:Float = 0;
 
 	public function new() {
 		backbuffer = Image.createRenderTarget(800, 600);
-
-		Assets.loadFont("RobotoMonoLight", onFontLoad);
-		Assets.loadImage("grumpy_cat_nope", onImageLoaded);
+		
+		currentTime = getNow();
+				
+		Assets.loadImage("wizard", onWizardLoaded);
 	}
 
-	private function onFontLoad(font:Font):Void {
-		this.font = font;
-		checkLoaded();
-	}
-
-	private function onImageLoaded(image:Image):Void {
-		grumpyCat = image;
+	
+	private function onWizardLoaded(image:Image):Void {
+		wizard = image;
 		checkLoaded();
 	}
 
 	private inline function checkLoaded():Void {
-		if(font != null && grumpyCat != null)
+		if(wizard != null)
 		{
 			initialized = true;
 		}
@@ -47,10 +51,10 @@ class LiveGame {
 		{
 			return;
 		}
-
+		
 		var g = backbuffer.g2;
 		g.begin();
-		g.drawImage(grumpyCat, 0,0);
+		g.drawSubImage(wizard, 0, 0, xPos, yPos, FRAME_SIZE, FRAME_SIZE);
 		g.end();
 
 		g = framebuffer.g2;
@@ -58,20 +62,28 @@ class LiveGame {
 
 		Scaler.scale(backbuffer, framebuffer, System.screenRotation);
 
-		g.font = font;
-		g.fontSize = 32;
-		g.color = Color.Black;
-		g.drawString("Hello World", xPos, 0);
-
 		g.end();
-
-		xPos++;
-
-		if(xPos == 800)
-		{
-			xPos = 0;
+		
+		var now:Float = getNow();
+		if(now < currentTime + FRAME_TIME){
+			return;
 		}
-
+		
+		currentTime = getNow();
+		
+		xPos += FRAME_SIZE;
+		if(xPos > FRAME_COUNT * FRAME_SIZE){
+			xPos = 0;
+			yPos += FRAME_SIZE;
+			
+			if(yPos > FRAME_COUNT * FRAME_SIZE){
+				yPos = 0;
+			}
+		}
+	}
+	
+	private inline function getNow():Float {
+		return Scheduler.time() * 1000;
 	}
 	
 	public function update(): Void {
