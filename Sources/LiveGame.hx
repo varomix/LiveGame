@@ -83,7 +83,7 @@ class LiveGame {
 	}
 	
 	private inline function getNow():Float {
-		return Scheduler.time() * 1000;
+		return Scheduler.time() * 1001;
 	}
 	
 	public function update(): Void {
